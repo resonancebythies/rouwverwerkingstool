@@ -489,7 +489,8 @@ const LAGEN = [
     titel: 'Wat ben je kwijt',
     intro: 'Dit is geen opdracht om over na te denken. Het is een opdracht om te voelen. Schrijf wat er opkomt, ook als het onlogisch voelt of klein lijkt.',
     kleur: '#D9A404',
-    minuten: 5,
+    minuten: 2,
+    wisTimer: false,
     vragen: [
       {
         label: 'Ochtenden — vroeger',
@@ -519,7 +520,8 @@ const LAGEN = [
     titel: 'Wat dit over jou zegt',
     intro: 'Neem de tijd. Lees eerst wat je bij de vorige laag hebt opgeschreven. Laat het even op je inwerken.',
     kleur: '#002F6C',
-    minuten: 4,
+    minuten: 2,
+    wisTimer: true,
     vragen: [
       {
         label: 'De gedachte die je wegduwt',
@@ -544,7 +546,8 @@ const LAGEN = [
     titel: 'Waar dit vandaan komt',
     intro: 'Neem even de tijd voordat je begint. Lees wat je bij de vorige twee lagen hebt opgeschreven. Houd dat gevoel vast terwijl je verdergaat.',
     kleur: '#6F7359',
-    minuten: 3,
+    minuten: 2,
+    wisTimer: true,
     vragen: [
       {
         label: 'Terug in de tijd',
@@ -693,6 +696,7 @@ function laadVraag(laagNr, vraagIdx) {
 
 function handleInput(laagNr, vraagIdx) {
   const veld = document.getElementById('tekstveld-' + laagNr + '-' + vraagIdx);
+  const laag = LAGEN[laagNr - 1];
 
   if (!schrijvenGestart) {
     schrijvenGestart = true;
@@ -703,7 +707,7 @@ function handleInput(laagNr, vraagIdx) {
   veld.classList.remove('gewist');
   verbergWisMelding(laagNr, vraagIdx);
 
-  if (!timerKlaar) {
+  if (laag.wisTimer && !timerKlaar) {
     clearTimeout(inactiviteitTimeout);
     inactiviteitTimeout = setTimeout(() => {
       wisVraagTekst(laagNr, vraagIdx);
@@ -814,11 +818,29 @@ function vraagOpslaan(laagNr, vraagIdx) {
 
   const laag = LAGEN[laagNr - 1];
   if (vraagIdx < laag.vragen.length - 1) {
-    laadVraag(laagNr, vraagIdx + 1);
+    toonTussenscherm(laagNr, vraagIdx, tekst);
   } else {
     bouwLeesScherm(laagNr);
     toonScherm('scherm-lees-' + laagNr);
   }
+}
+
+function toonTussenscherm(laagNr, vraagIdx, tekst) {
+  const container = document.getElementById('vraag-container-' + laagNr);
+  const volgendeVraag = LAGEN[laagNr - 1].vragen[vraagIdx + 1];
+
+  container.innerHTML = `
+    <div class="vraag-blok" style="border-left-color: var(--groen);">
+      <div style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 13px; color: var(--groen); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px;">Even stilstaan</div>
+      <div style="font-size: 16px; line-height: 1.8; color: var(--tekst); margin-bottom: 20px;">Dit schreef je zojuist:</div>
+      <div style="background: var(--lichtgrijs); border-left: 3px solid var(--goud); padding: 16px 20px; font-size: 15px; line-height: 1.8; color: var(--tekst); white-space: pre-wrap; border-radius: 2px; margin-bottom: 24px;">${escapeHTML(tekst) || '<em style="color:#aaa">Niets geschreven.</em>'}</div>
+      <div style="font-size: 15px; line-height: 1.8; color: var(--grijs);">Neem even de tijd. Lees het terug. Merk op wat er in je lijf gebeurt als je je eigen woorden ziet. Ga pas verder als je er klaar voor bent.</div>
+    </div>
+    <div style="margin-top: 16px; text-align: right;">
+      <button class="btn btn-primair" onclick="laadVraag(${laagNr}, ${vraagIdx + 1})">Ik ga verder →</button>
+    </div>
+  `;
+  window.scrollTo(0, 0);
 }
 
 // ============================================================
